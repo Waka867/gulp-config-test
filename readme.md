@@ -1,2 +1,1 @@
-
-Boilerplate code pulled from https://github.com/szaranger/browsersync-gulp-boilerplate/blob/master/gulpfile.js
+Boilerplate pulled from https://github.com/wapbamboogie/bootstrap-4-boilerplate/blob/master/gulpfile.js
