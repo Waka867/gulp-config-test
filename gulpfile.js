@@ -1,96 +1,71 @@
-// Code from https://github.com/wapbamboogie/bootstrap-4-boilerplate/blob/master/gulpfile.js
+const gulp = require('gulp');
+const sass = require('gulp-sass');
+const cssnano = require('cssnano');
+const postcss = require('gulp-postcss');
+const browserSync = require('browser-sync').create();
+ 
+
+
+function style(){
+    	return (
+        	gulp
+		//This is the location that we want gulp to look in and watch for sass changes 
+
+        	//.src("testFiles/*.scss"); 
+        	.src("./*.scss")
+ 
+        	// Use sass with the files found, and log any errors
+        	.pipe(sass())
+        	.on("error", sass.logError)
+
+		.pipe(postcss( [ cssnano() ] ))
+ 
+        	// What is the destination for the compiled file?
+        	//.pipe(gulp.dest("testFiles"))
+        	.pipe(gulp.dest("./"))
+
+		// Stream changes to browser
+		.pipe(browserSync.stream())
+	);
+
+}
 
 
 
-"use strict";
 
-var gulp = require('gulp'),
-	  concat = require('gulp-concat'),
-	  uglify = require('gulp-uglify'),
-	  rename = require('gulp-rename'),
-	  sass = require('gulp-sass'),
-	  maps = require('gulp-sourcemaps'),
-	  del = require('del'),
-	  autoprefixer = require('gulp-autoprefixer'),
-	  browserSync = require('browser-sync').create(),
-	  htmlreplace = require('gulp-html-replace'),
-	  cssmin = require('gulp-cssmin');
+function watch(){
+	browserSync.init({
+		// This would tell browsersync where to serve files from
+		/*server: {
+			baseDir: './'
+		},*/
+		browser: [ 
+			"google chrome", 
+			"firefox", 
+			"safari" 
+		],
+		// If you need to change or add a localhost:[port], do so here
+		proxy: "localhost",
+	});
 
-gulp.task("concatScripts", function() {
-	return gulp.src([
-		'assets/js/vendor/jquery-3.3.1.slim.min.js',
-		'assets/js/vendor/popper.min.js',
-		'assets/js/vendor/bootstrap.min.js',
-		'assets/js/functions.js'
-	])
-		.pipe(maps.init())
-		.pipe(concat('main.js'))
-		.pipe(maps.write('./'))
-		.pipe(gulp.dest('assets/js'))
-		.pipe(browserSync.stream());
-});
+    	// Watch SCSS files for changes then apply style function if one occurs
+    	gulp.watch('./*.scss', style);
 
-gulp.task("minifyScripts", ["concatScripts"], function() {
-  return gulp.src("assets/js/main.js")
-	  .pipe(uglify())
-	  .pipe(rename('main.min.js'))
-	  .pipe(gulp.dest('dist/assets/js'));
-});
+	// Watch HTML for browsersync
+    	gulp.watch('./*.html').on('change', browserSync.reload);
 
-gulp.task('compileSass', function() {
-  return gulp.src("assets/css/main.scss")
-    .pipe(maps.init())
-    .pipe(sass().on('error', sass.logError))
-    .pipe(autoprefixer())
-    .pipe(maps.write('./'))
-    .pipe(gulp.dest('assets/css'))
-    .pipe(browserSync.stream());
-});
+	// Watch JS for browsersycb
+	//gulp.watch('./*.js').on('change', browserSync.reload);
+}
+    
 
-gulp.task("minifyCss", ["compileSass"], function() {
-  return gulp.src("assets/css/main.css")
-    .pipe(cssmin())
-    .pipe(rename('main.min.css'))
-    .pipe(gulp.dest('dist/assets/css'));
-});
 
-gulp.task('watchFiles', function() {
-  gulp.watch('assets/css/**/*.scss', ['compileSass']);
-  gulp.watch('assets/js/*.js', ['concatScripts']);
-})
 
-gulp.task('clean', function() {
-  del(['dist', 'assets/css/main.css*', 'assets/js/main*.js*']);
-});
 
-gulp.task('renameSources', function() {
-  return gulp.src(['*.html', '**/*.php', '!dist', '!dist/**'])
-    .pipe(htmlreplace({
-      'js': 'assets/js/main.min.js',
-      'css': 'assets/css/main.min.css'
-    }))
-    .pipe(gulp.dest('dist/'));
-});
+exports.watch = watch;
+exports.style = style;
 
-gulp.task("build", ['minifyScripts', 'minifyCss'], function() {
-  return gulp.src([
-		'*.html',
-		'*.php',
-		'favicon.ico',
-		"assets/img/**"
-	], { base: './'})
-		.pipe(gulp.dest('dist'));
-});
 
-gulp.task('serve', ['watchFiles'], function(){
-  browserSync.init({
-  	server: "./"
-  });
 
-  gulp.watch("assets/css/**/*.scss", ['watchFiles']);
-  gulp.watch(['*.html', '*.php']).on('change', browserSync.reload);
-});
 
-gulp.task("default", ["clean", 'build'], function() {
-  gulp.start('renameSources');
-});
+// Partial directions from https://www.youtube.com/watch?v=QgMQeLymAdU
